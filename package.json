@@ -1,5 +1,5 @@
 {
-  "name": "@yandex-assessment/elkjs-native",
+  "name": "elkjs-native",
   "version": "0.0.12",
   "description": "Native TypeScript port of elkjs (layered algorithm only).",
   "type": "module",
