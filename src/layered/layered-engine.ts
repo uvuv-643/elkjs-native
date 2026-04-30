@@ -16,6 +16,10 @@
 import type { LGraph } from './lgraph.js';
 import { prepareGraphForLayout } from './graph-configurator.js';
 import * as components from './components/components-processor.js';
+import {
+  applyDirectionPreLayout,
+  applyDirectionPostLayout,
+} from './transform/direction-transformer.js';
 
 /** Whether to log the executed processor sequence; toggle via the env hook
  *  exposed on `globalThis` (works under Node and the browser). */
@@ -26,6 +30,10 @@ function isDebugSlots(): boolean {
 
 /** Runs the layered pipeline on `graph` in place. */
 export function doLayout(graph: LGraph): void {
+  // Rotate to canonical RIGHT before configuring the pipeline so phase
+  // implementations only ever see horizontally-flowing graphs.
+  applyDirectionPreLayout(graph);
+
   const pipeline = prepareGraphForLayout(graph);
   if (isDebugSlots()) {
     // eslint-disable-next-line no-console
@@ -39,4 +47,7 @@ export function doLayout(graph: LGraph): void {
     }
   }
   components.combine(comps, graph);
+
+  // Undo the rotation so coordinates land back in user-space.
+  applyDirectionPostLayout(graph);
 }

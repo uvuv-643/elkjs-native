@@ -1,6 +1,6 @@
 {
   "name": "@yandex-assessment/elkjs-native",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Native TypeScript port of elkjs (layered algorithm only).",
   "type": "module",
   "main": "dist/index.js",

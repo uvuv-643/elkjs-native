@@ -110,6 +110,7 @@ export const PolylineEdgeRouter: LayoutPhase = {
       [ProcessorSlot.AFTER_P5]: [
         IntermediateProcessor.LONG_EDGE_JOINER,
         IntermediateProcessor.REVERSED_EDGE_RESTORER,
+        IntermediateProcessor.SELF_LOOP_ROUTER,
         // DIVERGE: kept as a no-op stub — the user's pipeline never sets
         // end labels, so the sorter has nothing to do (see plan §0.6).
         IntermediateProcessor.END_LABEL_SORTER,

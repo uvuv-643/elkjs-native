@@ -29,6 +29,8 @@ export enum IntermediateProcessor {
   LAYER_SIZE_AND_GRAPH_HEIGHT_CALCULATOR = 'LAYER_SIZE_AND_GRAPH_HEIGHT_CALCULATOR',
   LONG_EDGE_JOINER = 'LONG_EDGE_JOINER',
   REVERSED_EDGE_RESTORER = 'REVERSED_EDGE_RESTORER',
+  SELF_LOOP_ROUTER = 'SELF_LOOP_ROUTER',
+  PORT_POSITION_CALCULATOR = 'PORT_POSITION_CALCULATOR',
   END_LABEL_SORTER = 'END_LABEL_SORTER',
 }
 
@@ -47,6 +49,8 @@ export const INTERMEDIATE_PROCESSOR_ORDER: readonly IntermediateProcessor[] = [
   IntermediateProcessor.LAYER_SIZE_AND_GRAPH_HEIGHT_CALCULATOR,
   IntermediateProcessor.LONG_EDGE_JOINER,
   IntermediateProcessor.REVERSED_EDGE_RESTORER,
+  IntermediateProcessor.SELF_LOOP_ROUTER,
+  IntermediateProcessor.PORT_POSITION_CALCULATOR,
   IntermediateProcessor.END_LABEL_SORTER,
 ];
 
@@ -63,6 +67,8 @@ import { LabelAndNodeSizeProcessor } from './label-and-node-size-processor.js';
 import { LayerSizeAndGraphHeightCalculator } from './layer-size-and-graph-height-calculator.js';
 import { LongEdgeJoiner } from './long-edge-joiner.js';
 import { ReversedEdgeRestorer } from './reversed-edge-restorer.js';
+import { SelfLoopRouter } from './self-loop-router.js';
+import { PortPositionCalculator } from './port-position-calculator.js';
 
 /** Real implementations registered so far. Stages 6-8 will fill the rest. */
 const REAL: Partial<Record<IntermediateProcessor, LayoutProcessor>> = {
@@ -81,6 +87,8 @@ const REAL: Partial<Record<IntermediateProcessor, LayoutProcessor>> = {
     LayerSizeAndGraphHeightCalculator,
   [IntermediateProcessor.LONG_EDGE_JOINER]: LongEdgeJoiner,
   [IntermediateProcessor.REVERSED_EDGE_RESTORER]: ReversedEdgeRestorer,
+  [IntermediateProcessor.SELF_LOOP_ROUTER]: SelfLoopRouter,
+  [IntermediateProcessor.PORT_POSITION_CALCULATOR]: PortPositionCalculator,
 };
 
 /** Named no-op for processors that haven't been ported yet. */
