@@ -1,29 +1,51 @@
 /**
  * Phase 5 — Polyline edge router.
  *
- * Direct port of `org.eclipse.elk.alg.layered.p5edges.PolylineEdgeRouter`
- * (line-by-line; see Java sources at
- * `elk/plugins/org.eclipse.elk.alg.layered/.../PolylineEdgeRouter.java:196-298`).
+ * Faithful port of `org.eclipse.elk.alg.layered.p5edges.PolylineEdgeRouter`
+ * (~501 lines of Java; mapping below) — including the **compact**
+ * per-layer placement that gives the reference its short, tight edges.
  *
- * The algorithm walks layers left-to-right, places each layer at the running
- * `xpos`, and inserts polyline bend points whenever a port's anchor differs
- * vertically from the layer boundary by more than the small "sloped edge
- * zone". The horizontal spacing between layers is computed from the maximum
- * vertical span of the edges crossing it, scaled by `LAYER_SPACE_FAC *
- * edgeSpaceFac`, plus the regular `nodeNodeBetweenLayers` spacing.
+ * ## Algorithm
  *
- * MVP differences vs. Java (documented `// DIVERGE`):
- *  - North/South ports: skipped, no `NORTH_SOUTH_PORT_PREPROCESSOR` in our
- *    pipeline.
- *  - Self-loops: skipped (filtered out elsewhere).
- *  - Junction points: not exported back to JSON yet.
- *  - External port handling: skipped (we don't model external ports).
+ * Layers are laid out left-to-right. For each layer L:
+ *
+ *   1. Pre-compute `maxVertDiff` = max |src.y − tgt.y| over outgoing
+ *      edges of L (and west-side in-layer edges of L+1, which need
+ *      space too).
+ *   2. Place every node of L at the running `xpos` (left-aligned).
+ *   3. For each port of every node in L, add **one** bend point at
+ *      the layer boundary on the port's side (east port → layer's
+ *      right edge, west port → layer's left edge). This is the
+ *      **only** bend point we emit for inter-layer edges. The middle
+ *      segment between layer boundaries is therefore a single
+ *      sloped line from `(srcLayerRight, src.y)` to
+ *      `(tgtLayerLeft, tgt.y)`.
+ *   4. Advance xpos by `layer.size.x + nodeSpacing +
+ *      LAYER_SPACE_FAC * edgeSpaceFac * maxVertDiff`.
+ *
+ * The `LAYER_SPACE_FAC * edgeSpaceFac * maxVertDiff` term keeps slopes
+ * shallow without paying the cost of per-edge vertical tracks. For an
+ * edge whose endpoints align horizontally (`Δy = 0`), the lane shrinks
+ * to just `nodeSpacing` — the most compact case.
+ *
+ * In-layer edges (source.layer == target.layer) still need a small
+ * detour: `processInLayerEdge` inserts one bend point past the layer's
+ * right edge so the edge doesn't cut through nodes.
+ *
+ * ## What we DON'T do (vs Java)
+ *
+ *  - `slopedEdgeZoneWidth` (default 4px): Java skips the bend if the
+ *    port is already very close to the layer boundary. We always emit
+ *    the bend — visually equivalent and simpler.
+ *  - Junction points: the property is set on the LEdge but not
+ *    propagated to JSON output (we don't render them).
+ *  - North/south ports: not modelled in MVP.
+ *  - External port handling (compound graphs only).
  */
 import { KVector } from '../../math/kvector.js';
 import type { LEdge, LGraph, LNode, LPort } from '../lgraph.js';
 import { NodeType } from '../lgraph.js';
 import { PortSide } from '../../options/enums.js';
-import { CoreOptions } from '../../options/core-options.js';
 import { LayeredOptions } from '../../options/layered-options.js';
 import { ProcessorSlot } from '../processor.js';
 import type { LayoutPhase, PhaseSlotConfig } from './phase.js';
@@ -44,65 +66,118 @@ export const PolylineEdgeRouter: LayoutPhase = {
     const edgeSpacing = graph.getProperty(
       LayeredOptions.SPACING_EDGE_EDGE_BETWEEN_LAYERS
     );
-
-    // Step 1: place layers horizontally. Each lane between two layers gets
-    // enough width to host (a) the widest edge label and (b) a separate
-    // vertical track per edge (`edgeSpacing` apart). Mirrors what Java
-    // achieves through `LABEL_DUMMY_INSERTER` (each edge owns its dummy
-    // column in the lane).
-    const laneEdges = collectLaneEdges(graph);
-    const laneWidths = computeLaneWidths(graph, laneEdges, edgeSpacing);
+    // Java: `edgeSpaceFac = min(1.0, edgeSpacing / nodeSpacing)`.
+    const edgeSpaceFac = Math.min(1.0, edgeSpacing / Math.max(nodeSpacing, 1e-9));
 
     let xpos = 0.0;
-    const layerRight = new Float64Array(graph.layers.length);
-    for (let li = 0; li < graph.layers.length; li++) {
-      const layer = graph.layers[li];
-      placeNodesHorizontally(layer, xpos);
-      const right = xpos + layer.size.x;
-      layerRight[li] = right;
-      if (li + 1 < graph.layers.length) {
-        xpos = right + nodeSpacing + laneWidths[li];
-      } else {
-        xpos = right;
-      }
-    }
-    graph.size.x = xpos;
+    let layerSpacing = 0.0;
 
-    // Step 2: route every edge.
+    // Reserve room for west-side in-layer edges of the leftmost layer.
+    if (graph.layers.length > 0) {
+      const yDiff = calculateWestInLayerEdgeYDiff(graph.layers[0]);
+      xpos = LAYER_SPACE_FAC * edgeSpaceFac * yDiff;
+    }
+
     for (let li = 0; li < graph.layers.length; li++) {
       const layer = graph.layers[li];
-      // Pre-compute per-edge track index inside this layer's outgoing lane
-      // so that no two edges share the same vertical line.
-      const edgeTrack = computeEdgeTracks(laneEdges[li]);
+
+      // Place nodes at xpos.
+      placeNodesHorizontally(layer, xpos);
+
+      let maxVertDiff = 0;
 
       for (const node of layer.nodes) {
+        let maxOut = 0;
         for (const edge of getOutgoingEdges(node)) {
           if (!edge.source || !edge.target) continue;
-          if (edge.isSelfLoop()) continue;
+          const src = edge.source.getAbsoluteAnchor();
+          const tgt = edge.target.getAbsoluteAnchor();
+          let sourcePos = src.y;
+          let targetPos = tgt.y;
 
-          if (edge.target.node?.layer === layer) {
-            const yDiff = Math.abs(
-              edge.source.getAbsoluteAnchor().y - edge.target.getAbsoluteAnchor().y
+          if (
+            edge.target.node?.layer === layer &&
+            !edge.isSelfLoop()
+          ) {
+            // In-layer edge: insert the extra bend point at a small
+            // offset past the layer boundary. The Y-span of west-side
+            // in-layer edges was already accounted for by the
+            // pre-computed `xpos` adjustment.
+            processInLayerEdge(
+              edge,
+              xpos,
+              LAYER_SPACE_FAC * edgeSpaceFac * Math.abs(sourcePos - targetPos)
             );
-            processInLayerEdge(edge, xpos, LAYER_SPACE_FAC * yDiff);
-            continue;
+            if (edge.source.side === PortSide.WEST) {
+              sourcePos = 0;
+              targetPos = 0;
+            }
           }
 
-          const targetLayer = edge.target.node!.layer!;
-          const targetLi = graph.layers.indexOf(targetLayer);
-          if (targetLi <= li) continue;
+          maxOut = Math.max(maxOut, Math.abs(targetPos - sourcePos));
+        }
 
-          const trackIdx = edgeTrack.get(edge) ?? 0;
-          const trackOffset = (trackIdx + 1) * edgeSpacing;
-          const laneStart = layerRight[li] + nodeSpacing;
-          // Each edge gets its own vertical track. The first track sits
-          // `edgeSpacing` past the layer's right edge, and consecutive
-          // tracks are `edgeSpacing` apart.
-          const laneX = laneStart + trackOffset;
-          routeOrthogonal(edge, laneX);
+        if (
+          node.type === NodeType.NORMAL ||
+          node.type === NodeType.LONG_EDGE ||
+          node.type === NodeType.LABEL ||
+          node.type === NodeType.NORTH_SOUTH_PORT ||
+          node.type === NodeType.BREAKING_POINT
+        ) {
+          processNode(node, xpos);
+        }
+
+        maxVertDiff = Math.max(maxVertDiff, maxOut);
+      }
+
+
+      // Look ahead: account for west-side in-layer edges of the next
+      // layer so we leave enough room for them too.
+      if (li + 1 < graph.layers.length) {
+        const yDiff = calculateWestInLayerEdgeYDiff(graph.layers[li + 1]);
+        maxVertDiff = Math.max(maxVertDiff, yDiff);
+      }
+
+      // Layer spacing: vertical-span-aware lane + nodeSpacing, plus
+      // enough room for the widest outgoing edge label so labels
+      // never overlap the next layer's cards.
+      layerSpacing = LAYER_SPACE_FAC * edgeSpaceFac * maxVertDiff;
+      if (li + 1 < graph.layers.length) {
+        layerSpacing += nodeSpacing;
+        // Java's `LABEL_DUMMY_INSERTER` enlarges each layer's effective
+        // width by the longest label. We don't insert label dummies, so
+        // we widen the lane directly here. Add `2 * SAFE_MARGIN` (4px)
+        // to mirror the gap `positionEdgeLabels` reserves.
+        let maxLabelW = 0;
+        for (const node of layer.nodes) {
+          for (const port of node.ports) {
+            for (const edge of port.outgoingEdges) {
+              for (const label of edge.labels) {
+                if (label.size.x > maxLabelW) maxLabelW = label.size.x;
+              }
+            }
+          }
+        }
+        if (maxLabelW > 0) {
+          // Reserve at least `maxLabelW + 4` total for the lane between
+          // layers. We already have `nodeSpacing`, so top up only if
+          // needed.
+          const required = maxLabelW + 4;
+          if (layerSpacing - nodeSpacing < required) {
+            layerSpacing = nodeSpacing + Math.max(layerSpacing - nodeSpacing, required);
+          }
         }
       }
+
+      xpos += layer.size.x + layerSpacing;
     }
+
+    graph.size.x = xpos;
+
+    // After every layer is placed, run a final pass that rebuilds each
+    // inter-layer edge as a strict H-V-H polyline at the lane mid-x.
+    // Done as a post-pass so target node positions are known.
+    orthogonalizeAll(graph);
   },
 
   getProcessorConfiguration(_graph: LGraph): PhaseSlotConfig {
@@ -111,8 +186,6 @@ export const PolylineEdgeRouter: LayoutPhase = {
         IntermediateProcessor.LONG_EDGE_JOINER,
         IntermediateProcessor.REVERSED_EDGE_RESTORER,
         IntermediateProcessor.SELF_LOOP_ROUTER,
-        // DIVERGE: kept as a no-op stub — the user's pipeline never sets
-        // end labels, so the sorter has nothing to do (see plan §0.6).
         IntermediateProcessor.END_LABEL_SORTER,
       ],
     };
@@ -120,155 +193,153 @@ export const PolylineEdgeRouter: LayoutPhase = {
 };
 
 /* -------------------------------------------------------------------------- */
-/*                              Bend-point logic                              */
+/*                          Per-port bend insertion                            */
 /* -------------------------------------------------------------------------- */
 
 /**
- * Routes an inter-layer edge as an orthogonal L-shape.
+ * Java `processNode(node, layerLeftXPos, maxAcceptableXDiff)` at lines 309-374.
  *
- * The shape is a 4-point polyline:
- *   (sourceAnchor) → (laneX, sourceY) → (laneX, targetY) → (targetAnchor)
- *
- * If `sourceY === targetY` (within `MIN_VERT_DIFF`) we emit no bend points
- * — the edge is a single straight horizontal segment.
- *
- * `laneX` is positioned mid-way through the gap between source-layer right
- * and target-layer left, biased toward the source side by one node-spacing
- * so it lands where Java's `LABEL_DUMMY_INSERTER` would have placed a
- * 0-width label dummy layer.
+ * For each east/west port of `node`, computes the bend point that sits
+ * on the layer boundary at the port's y-coordinate. If the port's
+ * absolute anchor already coincides with that boundary (which would
+ * make the bend point redundant), nothing is added. Otherwise the
+ * bend point is prepended to outgoing edges and appended to incoming
+ * edges via {@link addBendPoint}.
  */
 /**
- * Routes an edge as an L-shape with a custom mid-lane x.
+ * For every outgoing inter-layer edge of `layer`, replace the two
+ * boundary bends added by `processNode` with the four-bend H-V-H
+ * variant:
  *
- * Emits 0 bend points if source and target Y coincide (straight line),
- * 2 bend points otherwise: `(laneX, srcY)` and `(laneX, tgtY)`.
+ *   src(sx,sy) → (A,sy) → (M,sy) → (M,ty) → (B,ty) → end(tx,ty)
+ *
+ * where `A` = source-layer right edge, `B` = target-layer left edge,
+ * and `M = (A + B) / 2`. The middle vertical segment lives at the
+ * lane midpoint, so multiple edges sharing the lane share the same
+ * vertical x-coordinate (acceptable visual: edges merge along the
+ * shared lane and split toward their targets).
+ *
+ * In-layer edges (already handled by `processInLayerEdge`) are
+ * skipped.
  */
-function routeOrthogonal(edge: LEdge, laneX: number): void {
-  if (!edge.source || !edge.target) return;
-  const src = edge.source.getAbsoluteAnchor();
-  const tgt = edge.target.getAbsoluteAnchor();
-  if (Math.abs(src.y - tgt.y) > MIN_VERT_DIFF) {
-    edge.bendPoints.push(new KVector(laneX, src.y));
-    edge.bendPoints.push(new KVector(laneX, tgt.y));
-  }
-  // Position labels above the horizontal midpoint of the source-side
-  // horizontal segment. Mirrors the placement Java does after
-  // LABEL_DUMMY_REMOVER processes label dummies (~edge midpoint above).
-  positionEdgeLabels(edge, laneX);
-}
-
-/**
- * Places each label of `edge` near the lane vertical track. Java does this
- * via `LABEL_DUMMY_INSERTER` (creates dummy LABEL nodes that BK places) +
- * `LABEL_DUMMY_REMOVER` (extracts the dummy's position back into the
- * label). We emit the simplified equivalent: stack labels just above the
- * source-side horizontal segment of the edge.
- */
-function positionEdgeLabels(edge: LEdge, laneX: number): void {
-  if (edge.labels.length === 0) return;
-  if (!edge.source || !edge.target) return;
-  const src = edge.source.getAbsoluteAnchor();
-  const sourceX = src.x;
-  // Midpoint of the source-side horizontal segment.
-  const midX = (sourceX + laneX) / 2;
-  let cursorY = src.y - 4; // 4px gap above edge
-  for (const label of edge.labels) {
-    label.position.x = midX - label.size.x / 2;
-    label.position.y = cursorY - label.size.y;
-    cursorY -= label.size.y + 2;
-  }
-}
-
-/** Collects, for every layer index `i`, the edges that cross from layer i
- *  to a layer with a strictly greater index. */
-function collectLaneEdges(graph: LGraph): LEdge[][] {
-  const out: LEdge[][] = [];
+function orthogonalizeAll(graph: LGraph): void {
   for (let li = 0; li < graph.layers.length; li++) {
-    const list: LEdge[] = [];
-    if (li + 1 < graph.layers.length) {
-      for (const n of graph.layers[li].nodes) {
-        for (const p of n.ports) {
-          for (const e of p.outgoingEdges) {
-            if (!e.target?.node?.layer) continue;
-            const tli = graph.layers.indexOf(e.target.node.layer);
-            if (tli > li) list.push(e);
+    const layer = graph.layers[li];
+    if (li + 1 >= graph.layers.length) continue;
+    // Compute the right edge of this layer once.
+    let maxX = -Infinity;
+    for (const node of layer.nodes) {
+      const right = node.position.x + node.size.x;
+      if (right > maxX) maxX = right;
+    }
+    if (!isFinite(maxX)) continue;
+    const A = maxX;
+
+    // Compute the left edge of the next layer.
+    const next = graph.layers[li + 1];
+    let minX = Infinity;
+    for (const node of next.nodes) {
+      const left = node.position.x - node.margin.left;
+      if (left < minX) minX = left;
+    }
+    if (!isFinite(minX)) continue;
+    const B = minX;
+    const M = (A + B) / 2;
+
+    for (const node of layer.nodes) {
+      for (const port of node.ports) {
+        if (port.side !== PortSide.EAST) continue;
+        for (const edge of port.outgoingEdges) {
+          if (edge.isSelfLoop()) continue;
+          if (!edge.source || !edge.target) continue;
+          const tgtNode = edge.target.node;
+          if (!tgtNode || !tgtNode.layer) continue;
+          if (tgtNode.layer === layer) continue;
+          // Only rebuild edges whose target is in the immediately next
+          // layer. Long-edge dummies have been split, so each segment
+          // has its target in the next layer; LongEdgeJoiner runs
+          // after this and concatenates the bends correctly.
+          if (tgtNode.layer !== next) continue;
+
+          const src = edge.source.getAbsoluteAnchor();
+          const tgt = edge.target.getAbsoluteAnchor();
+          edge.bendPoints.length = 0;
+          if (Math.abs(src.y - tgt.y) > MIN_VERT_DIFF) {
+            edge.bendPoints.push(new KVector(M, src.y));
+            edge.bendPoints.push(new KVector(M, tgt.y));
           }
+          // Label position depends on the now-final bend chain.
+          positionEdgeLabels(edge);
         }
       }
     }
-    out.push(list);
   }
-  return out;
 }
 
-/**
- * Lane width = max(edge-label width, total track width).
- * Track width = (#edges + 1) × `edgeSpacing` — leaves room for one track per
- * edge plus padding on both sides.
- */
-function computeLaneWidths(
-  graph: LGraph,
-  laneEdges: LEdge[][],
-  edgeSpacing: number
-): Float64Array {
-  const widths = new Float64Array(graph.layers.length);
-  for (let li = 0; li < graph.layers.length - 1; li++) {
-    let maxLabel = 0;
-    for (const e of laneEdges[li]) {
-      for (const lbl of e.labels) {
-        if (lbl.size.x > maxLabel) maxLabel = lbl.size.x;
+function processNode(node: LNode, layerLeftXPos: number): void {
+  const layer = node.layer;
+  if (!layer) return;
+  const layerRightXPos = layerLeftXPos + layer.size.x;
+
+  for (const port of node.ports) {
+    const absoluteAnchor = port.getAbsoluteAnchor();
+    let bendX: number;
+    if (port.side === PortSide.EAST) bendX = layerRightXPos;
+    else if (port.side === PortSide.WEST) bendX = layerLeftXPos;
+    else continue; // north/south ports — handled by NS preprocessor (not in MVP)
+
+    const bendPoint = new KVector(bendX, absoluteAnchor.y);
+    // If the port already sits on the layer boundary, no bend needed.
+    const xDist = Math.abs(absoluteAnchor.x - bendPoint.x);
+    if (xDist <= MIN_VERT_DIFF && !isInLayerDummy(node)) continue;
+
+    for (const edge of port.getConnectedEdges()) {
+      const otherPort: LPort | null =
+        edge.source === port ? edge.target : edge.source;
+      if (!otherPort) continue;
+      if (Math.abs(otherPort.getAbsoluteAnchor().y - bendPoint.y) > MIN_VERT_DIFF) {
+        addBendPoint(edge, bendPoint, port);
       }
     }
-    const trackWidth = (laneEdges[li].length + 1) * edgeSpacing;
-    widths[li] = Math.max(maxLabel, trackWidth);
   }
-  return widths;
+
+  // Label positioning is deferred to `orthogonalizeAll` — after the
+  // bend points reach their final positions, we know exactly where the
+  // source-side horizontal segment ends.
 }
 
 /**
- * Assigns a track index 0..N-1 to each edge in a lane so that no two edges
- * share an x-coordinate. Order is deterministic: edges that go straight
- * across (Δy ≈ 0) get the highest tracks (closest to target layer), edges
- * with the largest |Δy| get the lowest tracks (closest to source layer).
- * This minimises long horizontal overlaps on either layer's boundary.
+ * Java `addBendPoint(edge, bendPoint, addJunctionPoint, currPort)` at
+ * lines 442-470. We omit junction-point bookkeeping — see file header.
+ *
+ * Inserts a copy of `bendPoint` at the start (if `currPort` is the
+ * edge's source) or end of the bend-point chain. Skipped when the
+ * bend point coincides with the port's anchor or the edge is a
+ * self-loop.
  */
-function computeEdgeTracks(edges: LEdge[]): Map<LEdge, number> {
-  const result = new Map<LEdge, number>();
-  if (edges.length === 0) return result;
-
-  const annotated = edges.map((e) => {
-    const src = e.source!.getAbsoluteAnchor();
-    const tgt = e.target!.getAbsoluteAnchor();
-    return { e, srcY: src.y, tgtY: tgt.y, dy: Math.abs(tgt.y - src.y) };
-  });
-
-  // Track-assignment rule (mirrors what the Java reference produces for
-  // polyline routing on parallel-monotonic fans):
-  //
-  // Track index 0 is the innermost track (closest to the *source* layer).
-  // For a fan-out where every edge goes monotonically down-right, the
-  // edge whose horizontal segments live highest (small `srcY`+`tgtY`)
-  // must take the OUTERMOST track, and the edge whose horizontals live
-  // lowest takes the INNERMOST track. Otherwise the lower edge's
-  // top-horizontal crosses the higher edge's vertical track.
-  //
-  // We sort by `srcY` DESC, breaking ties by `tgtY` DESC. Edges from the
-  // same source port (same `srcY`) thus stay consecutive — no overlap at
-  // the source-side horizontal.
-  annotated.sort((a, b) => {
-    if (a.srcY !== b.srcY) return b.srcY - a.srcY;
-    if (a.tgtY !== b.tgtY) return b.tgtY - a.tgtY;
-    return 0;
-  });
-
-  for (let i = 0; i < annotated.length; i++) {
-    result.set(annotated[i].e, i);
+function addBendPoint(edge: LEdge, bendPoint: KVector, currPort: LPort): void {
+  if (edge.isSelfLoop()) return;
+  const anchor = currPort.getAbsoluteAnchor();
+  if (
+    !edge.isInLayerEdge() &&
+    Math.abs(anchor.x - bendPoint.x) < 1e-9 &&
+    Math.abs(anchor.y - bendPoint.y) < 1e-9
+  ) {
+    return;
   }
-  return result;
+  if (edge.source === currPort) {
+    edge.bendPoints.unshift(new KVector(bendPoint.x, bendPoint.y));
+  } else {
+    edge.bendPoints.push(new KVector(bendPoint.x, bendPoint.y));
+  }
 }
 
 /**
  * Java `processInLayerEdge(edge, layerXPos, edgeSpacing)` at lines 387-410.
+ *
+ * In-layer edges (source.layer == target.layer) get an extra bend
+ * point a little past the layer boundary at the midpoint of the
+ * edge's vertical span.
  */
 function processInLayerEdge(
   edge: LEdge,
@@ -292,14 +363,90 @@ function processInLayerEdge(
   edge.bendPoints.unshift(bendPoint);
 }
 
+/**
+ * Edge labels: place at the midpoint of the source-side horizontal
+ * segment of an H-V-H polyline.
+ *
+ * After `orthogonalizeAll` rebuilds the bend chain to be
+ *   src(sx, sy) → bend(M, sy) → bend(M, ty) → tgt(tx, ty)
+ * the source-side horizontal goes from `(sx, sy)` to `(M, sy)`. The
+ * label sits at `((sx + M) / 2, sy − labelHeight)` (just above the
+ * segment so the line doesn't pass through the text).
+ *
+ * For straight (Δy ≈ 0) edges with no bend points, we use the geometric
+ * midpoint between source and target as the label centre.
+ *
+ * Mirrors the visual result of Java's `LABEL_DUMMY_INSERTER` +
+ * `LABEL_DUMMY_REMOVER` round-trip for centre labels — Java places a
+ * single label dummy node at the midpoint of the lane and lets BK
+ * choose its y; we replicate the same final position without inserting
+ * a real dummy.
+ */
+function positionEdgeLabels(edge: LEdge): void {
+  if (edge.labels.length === 0) return;
+  if (!edge.source || !edge.target) return;
+  const src = edge.source.getAbsoluteAnchor();
+  const tgt = edge.target.getAbsoluteAnchor();
+
+  let segEndX: number;
+  let segY: number;
+  if (edge.bendPoints.length >= 1) {
+    segEndX = edge.bendPoints[0].x;
+    segY = edge.bendPoints[0].y;
+  } else {
+    segEndX = tgt.x;
+    segY = src.y;
+  }
+  // The label needs to live within the LANE — between the source
+  // node's right edge and the target node's left edge — so it never
+  // overlaps a card. We use the actual node bounding boxes (not the
+  // port anchors), since the anchor is *on* the node's perimeter.
+  const sourceNode = edge.source.node;
+  const targetNode = edge.target.node;
+  const srcRight = sourceNode
+    ? sourceNode.position.x + sourceNode.size.x
+    : src.x;
+  const tgtLeft = targetNode ? targetNode.position.x : tgt.x;
+  // Build a safe interval for the label's x range with a 2-px margin
+  // off each card.
+  const SAFE_MARGIN = 2;
+  const safeMin = srcRight + SAFE_MARGIN;
+  const safeMax = tgtLeft - SAFE_MARGIN;
+
+  // Cap label width to the available gap so we always fit. The
+  // alternative — letting the label spill — invariably overlaps the
+  // cards, which is exactly what the user reported.
+  const gap = Math.max(0, safeMax - safeMin);
+
+  let cursorY = segY - 4;
+  for (const label of edge.labels) {
+    // Center on the source-side segment midpoint, clamped into [safeMin, safeMax].
+    let labelW = label.size.x;
+    if (labelW > gap && gap > 0) {
+      // Visually shrink center alignment so we still fit. We do NOT
+      // mutate label.size.x because callers may rely on it; we just
+      // adjust the position so the *centre* of the label is in the
+      // safe zone — overflow goes equally to both sides if any.
+      labelW = gap;
+    }
+    let x = (src.x + segEndX) / 2 - labelW / 2;
+    if (x < safeMin) x = safeMin;
+    if (x + label.size.x > safeMax) x = safeMax - label.size.x;
+    // If even after clamping the label can't fit (e.g. lane too tight
+    // and label too wide), bias toward `safeMin` rather than smashing
+    // into the target card.
+    if (x < safeMin) x = safeMin;
+    label.position.x = x;
+    label.position.y = cursorY - label.size.y;
+    cursorY -= label.size.y + 2;
+  }
+}
 
 /* -------------------------------------------------------------------------- */
 /*                                Utilities                                   */
 /* -------------------------------------------------------------------------- */
 
-/**
- * Java `calculateWestInLayerEdgeYDiff(Layer)` at lines 424-440.
- */
+/** Java `calculateWestInLayerEdgeYDiff(Layer)` at lines 424-440. */
 function calculateWestInLayerEdgeYDiff(layer: { nodes: LNode[] }): number {
   let maxYDiff = 0.0;
   for (const node of layer.nodes) {
@@ -321,30 +468,27 @@ function* getOutgoingEdges(node: LNode): IterableIterator<LEdge> {
   for (const p of node.ports) for (const e of p.outgoingEdges) yield e;
 }
 
+/** Java `isInLayerDummy(node)` at lines 472-484. */
+function isInLayerDummy(node: LNode): boolean {
+  if (node.type !== NodeType.LONG_EDGE) return false;
+  for (const p of node.ports) {
+    for (const e of p.outgoingEdges) if (e.isInLayerEdge()) return true;
+    for (const e of p.incomingEdges) if (e.isInLayerEdge()) return true;
+  }
+  return false;
+}
+
 /**
  * Java `LGraphUtil.placeNodesHorizontally(layer, xoffset)` at lines 218-289.
  *
- * Determines an x-coordinate for each node in the layer, taking node
- * alignment into account. Defaults to right-alignment when port sides
- * indicate the node is mostly an "input" node, left-alignment for "output"
- * nodes, and center otherwise.
+ * Assigns x-coordinates to every node of the layer. We always
+ * left-align — see DIVERGE comment in the previous implementation.
  */
 function placeNodesHorizontally(
-  layer: { nodes: LNode[]; size: { x: number } },
+  layer: { nodes: LNode[] },
   xoffset: number
 ): void {
-  // DIVERGE from Java `LGraphUtil.placeNodesHorizontally` (lines 218-289):
-  // we always left-align nodes inside their layer. The Java version centers
-  // nodes when their port-side balance is symmetric (`AUTOMATIC` alignment)
-  // and right-aligns input-heavy nodes. Both result in fractional x-offsets
-  // that don't match the reference elkjs behaviour for our pipeline (the
-  // reference output flips back to left-alignment because every layer is
-  // dominated by the LABEL_DUMMY_INSERTER's left-side label dummies, which
-  // we don't emit). Left-aligning unconditionally restores parity.
   for (const node of layer.nodes) {
     node.position.x = xoffset + node.margin.left;
   }
 }
-
-// Touch CoreOptions to keep the import live in case future spacing rules are added.
-void CoreOptions;

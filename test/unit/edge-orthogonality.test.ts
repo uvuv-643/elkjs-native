@@ -131,22 +131,29 @@ describe('Edge orthogonality', () => {
 });
 
 describe('Edge separation', () => {
-  it('no two edges share the same vertical mid-track in any lane', async () => {
+  // The compact polyline router (matching Java ELK) routes every edge in
+  // a lane through the same mid-x track. This is a deliberate visual
+  // trade-off — edges merge along the lane and split toward their
+  // targets, mirroring elkjs reference output. Per-edge tracks would
+  // make every fan-out balloon to N×spacing wide.
+  //
+  // What we *do* require: middle-vertical segments don't escape their
+  // lane (i.e. mid-x is between source-layer right and target-layer
+  // left). That's an invariant the compact router preserves.
+  it('every edge\'s middle vertical segment stays inside its lane', async () => {
     const elk = new ELK();
     const result = await elk.layout(buildBigGraph());
-    // Group middle vertical segments by their X.
-    const trackXs = new Map<number, string[]>();
+    const src = result.children?.find((c) => c.id === 'src');
+    expect(src).toBeDefined();
+    const sourceRight = (src!.x ?? 0) + (src!.width ?? 0);
+    const t0 = result.children?.find((c) => c.id === 'sink0');
+    const targetLeft = t0?.x ?? Number.POSITIVE_INFINITY;
     for (const e of result.edges ?? []) {
       const sec = e.sections?.[0];
       if (!sec?.bendPoints || sec.bendPoints.length < 2) continue;
-      // Middle vertical segment connects bendPoints[0] (laneX, srcY) to
-      // bendPoints[1] (laneX, tgtY). Both share the same X.
       const x = sec.bendPoints[0].x;
-      const arr = trackXs.get(x) ?? [];
-      arr.push(e.id);
-      trackXs.set(x, arr);
+      expect(x).toBeGreaterThanOrEqual(sourceRight);
+      expect(x).toBeLessThanOrEqual(targetLeft);
     }
-    const sharedTracks = [...trackXs.entries()].filter(([, ids]) => ids.length > 1);
-    expect(sharedTracks.length, JSON.stringify(sharedTracks.slice(0, 3))).toBe(0);
   });
 });

@@ -19,11 +19,12 @@ describe('PolylineEdgeRouter', () => {
     PolylineEdgeRouter.process(b.graph);
 
     expect(a.position.x).toBe(0);
-    // Second layer starts at first layer's width + nodeSpacing + lane width
-    // (max of label widths and per-edge track allocation). Default edge
-    // spacing is 10, so a single-edge lane reserves (1+1)*10 = 20 for
-    // tracks.
-    expect(c.position.x).toBeGreaterThan(40 + 50);
-    expect(b.graph.size.x).toBeGreaterThan(40 + 50 + 40);
+    // Java's POLYLINE produces a compact lane:
+    //   lane = nodeSpacing + LAYER_SPACE_FAC * edgeSpaceFac * maxVertDiff.
+    // With horizontally-aligned ports (Δy = 0) the lane collapses to
+    // exactly `nodeSpacing`. Source layer width = 40, nodeSpacing = 50 →
+    // c.x ≥ 90.
+    expect(c.position.x).toBeGreaterThanOrEqual(40 + 50);
+    expect(b.graph.size.x).toBeGreaterThanOrEqual(40 + 50 + 40);
   });
 });
