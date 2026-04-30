@@ -241,11 +241,22 @@ function computeEdgeTracks(edges: LEdge[]): Map<LEdge, number> {
     return { e, srcY: src.y, tgtY: tgt.y, dy: Math.abs(tgt.y - src.y) };
   });
 
-  // Sort by source Y (then target Y) so siblings from the same port get
-  // consecutive tracks. This avoids overlap at the source horizontal segment.
+  // Track-assignment rule (mirrors what the Java reference produces for
+  // polyline routing on parallel-monotonic fans):
+  //
+  // Track index 0 is the innermost track (closest to the *source* layer).
+  // For a fan-out where every edge goes monotonically down-right, the
+  // edge whose horizontal segments live highest (small `srcY`+`tgtY`)
+  // must take the OUTERMOST track, and the edge whose horizontals live
+  // lowest takes the INNERMOST track. Otherwise the lower edge's
+  // top-horizontal crosses the higher edge's vertical track.
+  //
+  // We sort by `srcY` DESC, breaking ties by `tgtY` DESC. Edges from the
+  // same source port (same `srcY`) thus stay consecutive — no overlap at
+  // the source-side horizontal.
   annotated.sort((a, b) => {
-    if (a.srcY !== b.srcY) return a.srcY - b.srcY;
-    if (a.tgtY !== b.tgtY) return a.tgtY - b.tgtY;
+    if (a.srcY !== b.srcY) return b.srcY - a.srcY;
+    if (a.tgtY !== b.tgtY) return b.tgtY - a.tgtY;
     return 0;
   });
 

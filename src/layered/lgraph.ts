@@ -141,7 +141,20 @@ export class LEdge extends LGraphElement {
     if (port) port.incomingEdges.push(this);
   }
 
-  /** Swaps source and target endpoints (used by cycle breaker). */
+  /**
+   * Swaps source and target endpoints (used by the cycle breaker and the
+   * reversed-edge restorer). Mirrors `org.eclipse.elk.alg.layered.graph.LEdge.reverse`:
+   *
+   * - swaps source/target ports;
+   * - reverses the bend-points chain (so the geometric path now reads
+   *   start-to-end in the new direction);
+   * - swaps end-label placement (TAIL ↔ HEAD).
+   *
+   * The TS version omits the `INPUT_COLLECT`/`OUTPUT_COLLECT` adapt-port
+   * branch (we do not model collector ports in the MVP) and does NOT toggle
+   * the `REVERSED` property — callers (`GreedyCycleBreaker`,
+   * `ReversedEdgeRestorer`) decide that.
+   */
   reverse(): void {
     const s = this._source;
     const t = this._target;
@@ -150,6 +163,11 @@ export class LEdge extends LGraphElement {
     this.setTarget(null);
     this.setSource(t);
     this.setTarget(s);
+    // Geometric path reverses too, otherwise routed bend-points produced
+    // for the forward direction read backwards after the restorer flips
+    // the endpoints. Mirrors `bendPoints = KVectorChain.reverse(bendPoints)`
+    // at LEdge.java:217.
+    this.bendPoints.reverse();
   }
 
   /** Mirrors `LEdge.isSelfLoop()`. */
