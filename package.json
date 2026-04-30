@@ -1,6 +1,6 @@
 {
   "name": "elkjs-native",
-  "version": "0.0.12",
+  "version": "0.0.14",
   "description": "Native TypeScript port of elkjs (layered algorithm only).",
   "type": "module",
   "main": "dist/index.js",

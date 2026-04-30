@@ -131,15 +131,13 @@ describe('Edge orthogonality', () => {
 });
 
 describe('Edge separation', () => {
-  // The compact polyline router (matching Java ELK) routes every edge in
-  // a lane through the same mid-x track. This is a deliberate visual
-  // trade-off — edges merge along the lane and split toward their
-  // targets, mirroring elkjs reference output. Per-edge tracks would
-  // make every fan-out balloon to N×spacing wide.
+  // Polyline phase 5 orthogonalizes into H-V-H; each inter-layer edge
+  // gets its own vertical-track x inside the lane, spaced by
+  // `elk.layered.spacing.edgeEdgeBetweenLayers` when the lane is wide
+  // enough (otherwise gaps shrink proportionally).
   //
-  // What we *do* require: middle-vertical segments don't escape their
-  // lane (i.e. mid-x is between source-layer right and target-layer
-  // left). That's an invariant the compact router preserves.
+  // Invariant: middle-vertical x stays strictly between the source
+  // layer's right edge and the target layer's left edge.
   it('every edge\'s middle vertical segment stays inside its lane', async () => {
     const elk = new ELK();
     const result = await elk.layout(buildBigGraph());

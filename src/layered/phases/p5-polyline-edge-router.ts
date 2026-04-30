@@ -175,8 +175,12 @@ export const PolylineEdgeRouter: LayoutPhase = {
     graph.size.x = xpos;
 
     // After every layer is placed, run a final pass that rebuilds each
-    // inter-layer edge as a strict H-V-H polyline at the lane mid-x.
-    // Done as a post-pass so target node positions are known.
+    // inter-layer edge as a strict H-V-H polyline. Vertical segments get
+    // distinct x-coordinates spaced by `edgeEdgeBetweenLayers` inside the
+    // lane (same ordering heuristic as {@link OrthogonalEdgeRouter}) so
+    // parallel edges do not collapse onto one line — unlike Java's native
+    // polyline (diagonals), our post-pass is orthogonal and needs explicit
+    // tracks.
     orthogonalizeAll(graph);
   },
 
@@ -214,15 +218,17 @@ export const PolylineEdgeRouter: LayoutPhase = {
  *   src(sx,sy) → (A,sy) → (M,sy) → (M,ty) → (B,ty) → end(tx,ty)
  *
  * where `A` = source-layer right edge, `B` = target-layer left edge,
- * and `M = (A + B) / 2`. The middle vertical segment lives at the
- * lane midpoint, so multiple edges sharing the lane share the same
- * vertical x-coordinate (acceptable visual: edges merge along the
- * shared lane and split toward their targets).
+ * and `M` is chosen per edge from a spread of track positions inside
+ * `(A, B)` so parallel edges remain visually separated.
  *
  * In-layer edges (already handled by `processInLayerEdge`) are
  * skipped.
  */
 function orthogonalizeAll(graph: LGraph): void {
+  const edgeSpacing = graph.getProperty(
+    LayeredOptions.SPACING_EDGE_EDGE_BETWEEN_LAYERS
+  );
+
   for (let li = 0; li < graph.layers.length; li++) {
     const layer = graph.layers[li];
     if (li + 1 >= graph.layers.length) continue;
@@ -244,8 +250,8 @@ function orthogonalizeAll(graph: LGraph): void {
     }
     if (!isFinite(minX)) continue;
     const B = minX;
-    const M = (A + B) / 2;
 
+    const laneEdges: LEdge[] = [];
     for (const node of layer.nodes) {
       for (const port of node.ports) {
         if (port.side !== PortSide.EAST) continue;
@@ -255,25 +261,81 @@ function orthogonalizeAll(graph: LGraph): void {
           const tgtNode = edge.target.node;
           if (!tgtNode || !tgtNode.layer) continue;
           if (tgtNode.layer === layer) continue;
-          // Only rebuild edges whose target is in the immediately next
-          // layer. Long-edge dummies have been split, so each segment
-          // has its target in the next layer; LongEdgeJoiner runs
-          // after this and concatenates the bends correctly.
           if (tgtNode.layer !== next) continue;
-
-          const src = edge.source.getAbsoluteAnchor();
-          const tgt = edge.target.getAbsoluteAnchor();
-          edge.bendPoints.length = 0;
-          if (Math.abs(src.y - tgt.y) > MIN_VERT_DIFF) {
-            edge.bendPoints.push(new KVector(M, src.y));
-            edge.bendPoints.push(new KVector(M, tgt.y));
-          }
-          // Label position depends on the now-final bend chain.
-          positionEdgeLabels(edge);
+          laneEdges.push(edge);
         }
       }
     }
+
+    const edgeToM = assignLaneVerticalTrackX(laneEdges, A, B, edgeSpacing);
+
+    for (const edge of laneEdges) {
+      const src = edge.source!.getAbsoluteAnchor();
+      const tgt = edge.target!.getAbsoluteAnchor();
+      edge.bendPoints.length = 0;
+      if (Math.abs(src.y - tgt.y) > MIN_VERT_DIFF) {
+        const M = edgeToM.get(edge) ?? (A + B) / 2;
+        edge.bendPoints.push(new KVector(M, src.y));
+        edge.bendPoints.push(new KVector(M, tgt.y));
+      }
+      positionEdgeLabels(edge);
+    }
   }
+}
+
+/**
+ * One x-coordinate per edge for the shared vertical bus, monotonic in the
+ * same order as the orthogonal router's per-lane edge sort (srcY/tgtY
+ * descending).
+ */
+function assignLaneVerticalTrackX(
+  edges: LEdge[],
+  A: number,
+  B: number,
+  edgeSpacing: number
+): Map<LEdge, number> {
+  const result = new Map<LEdge, number>();
+  const n = edges.length;
+  if (n === 0) return result;
+
+  const sorted = [...edges].sort((ea, eb) => {
+    const aSrc = ea.source!.getAbsoluteAnchor().y;
+    const bSrc = eb.source!.getAbsoluteAnchor().y;
+    if (Math.abs(bSrc - aSrc) > 1e-9) return bSrc - aSrc;
+    const aTgt = ea.target!.getAbsoluteAnchor().y;
+    const bTgt = eb.target!.getAbsoluteAnchor().y;
+    return bTgt - aTgt;
+  });
+
+  const xs = verticalTrackXsInLane(A, B, n, edgeSpacing);
+  for (let i = 0; i < n; i++) {
+    result.set(sorted[i], xs[i]!);
+  }
+  return result;
+}
+
+/** Evenly spaced x-positions in `[A, B]` with at least `edgeSpacing` when the lane is wide enough. */
+function verticalTrackXsInLane(
+  A: number,
+  B: number,
+  n: number,
+  edgeSpacing: number
+): number[] {
+  if (n === 1) return [(A + B) / 2];
+  const W = B - A;
+  if (!(W > 0) || !Number.isFinite(W)) {
+    const c = (A + B) / 2;
+    return Array.from({ length: n }, () => c);
+  }
+  const inset = Math.min(edgeSpacing, W * 0.15);
+  const inner = Math.max(0, W - 2 * inset);
+  let gap = edgeSpacing;
+  if (n > 1 && (n - 1) * gap > inner) {
+    gap = inner / (n - 1);
+  }
+  const span = (n - 1) * gap;
+  const start = A + inset + (inner - span) / 2;
+  return Array.from({ length: n }, (_, i) => start + i * gap);
 }
 
 function processNode(node: LNode, layerLeftXPos: number): void {
