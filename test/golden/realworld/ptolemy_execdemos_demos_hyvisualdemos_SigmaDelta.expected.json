@@ -1,0 +1,1674 @@
+{
+  "id": "G1",
+  "children": [
+    {
+      "id": "N1",
+      "labels": [
+        {
+          "text": "delay",
+          "id": "L1",
+          "width": 31,
+          "height": 15,
+          "x": 0,
+          "y": -20
+        }
+      ],
+      "ports": [
+        {
+          "id": "P1",
+          "properties": {
+            "port.side": "WEST",
+            "port.index": "0"
+          },
+          "width": 8,
+          "height": 8,
+          "x": -8,
+          "y": 19
+        },
+        {
+          "id": "P2",
+          "properties": {
+            "port.side": "EAST",
+            "port.index": "1"
+          },
+          "width": 8,
+          "height": 8,
+          "x": 66,
+          "y": 19
+        }
+      ],
+      "properties": {
+        "portConstraints": "FIXED_ORDER",
+        "nodeLabels.placement": "[H_LEFT, V_TOP, OUTSIDE]"
+      },
+      "width": 66,
+      "height": 46,
+      "$H": 9699,
+      "x": 334,
+      "y": 264
+    },
+    {
+      "id": "N2",
+      "labels": [
+        {
+          "text": "FIR Filter",
+          "id": "L2",
+          "width": 54,
+          "height": 15,
+          "x": 0,
+          "y": -20
+        }
+      ],
+      "ports": [
+        {
+          "id": "P3",
+          "properties": {
+            "port.side": "WEST",
+            "port.index": "0"
+          },
+          "width": 8,
+          "height": 8,
+          "x": -8,
+          "y": 19
+        },
+        {
+          "id": "P4",
+          "properties": {
+            "port.side": "EAST",
+            "port.index": "1"
+          },
+          "width": 8,
+          "height": 8,
+          "x": 66,
+          "y": 19
+        }
+      ],
+      "properties": {
+        "portConstraints": "FIXED_ORDER",
+        "nodeLabels.placement": "[H_LEFT, V_TOP, OUTSIDE]"
+      },
+      "width": 66,
+      "height": 46,
+      "$H": 9704,
+      "x": 436.5,
+      "y": 264
+    },
+    {
+      "id": "N3",
+      "labels": [
+        {
+          "text": "Quantizer",
+          "id": "L3",
+          "width": 57,
+          "height": 15,
+          "x": 0,
+          "y": -20
+        }
+      ],
+      "ports": [
+        {
+          "id": "P5",
+          "properties": {
+            "port.side": "WEST",
+            "port.index": "0"
+          },
+          "width": 8,
+          "height": 8,
+          "x": -8,
+          "y": 16.5
+        },
+        {
+          "id": "P6",
+          "properties": {
+            "port.side": "EAST",
+            "port.index": "1"
+          },
+          "width": 8,
+          "height": 8,
+          "x": 61,
+          "y": 16.5
+        }
+      ],
+      "properties": {
+        "portConstraints": "FIXED_ORDER",
+        "nodeLabels.placement": "[H_LEFT, V_TOP, OUTSIDE]"
+      },
+      "width": 61,
+      "height": 41,
+      "$H": 9709,
+      "x": 541.5,
+      "y": 266.5
+    },
+    {
+      "id": "N4",
+      "labels": [
+        {
+          "text": "DEPlot",
+          "id": "L4",
+          "width": 41,
+          "height": 15,
+          "x": 0,
+          "y": -20
+        }
+      ],
+      "ports": [
+        {
+          "id": "P7",
+          "properties": {
+            "port.side": "WEST",
+            "port.index": "0"
+          },
+          "width": 8,
+          "height": 8,
+          "x": -8,
+          "y": 16.5
+        }
+      ],
+      "properties": {
+        "portConstraints": "FIXED_ORDER",
+        "nodeLabels.placement": "[H_LEFT, V_TOP, OUTSIDE]"
+      },
+      "width": 41,
+      "height": 41,
+      "$H": 9714,
+      "x": 904,
+      "y": 299.5
+    },
+    {
+      "id": "N5",
+      "labels": [
+        {
+          "text": "Moving Average",
+          "id": "L5",
+          "width": 90,
+          "height": 15,
+          "x": 0,
+          "y": -20
+        }
+      ],
+      "ports": [
+        {
+          "id": "P8",
+          "properties": {
+            "port.side": "WEST",
+            "port.index": "0"
+          },
+          "width": 8,
+          "height": 8,
+          "x": -8,
+          "y": 19
+        },
+        {
+          "id": "P9",
+          "properties": {
+            "port.side": "EAST",
+            "port.index": "1"
+          },
+          "width": 8,
+          "height": 8,
+          "x": 66,
+          "y": 19
+        }
+      ],
+      "properties": {
+        "portConstraints": "FIXED_ORDER",
+        "nodeLabels.placement": "[H_LEFT, V_TOP, OUTSIDE]"
+      },
+      "width": 66,
+      "height": 46,
+      "$H": 9718,
+      "x": 641,
+      "y": 351
+    },
+    {
+      "id": "N6",
+      "labels": [
+        {
+          "text": "Average 50 samples",
+          "id": "L6",
+          "width": 117,
+          "height": 15,
+          "x": 0,
+          "y": -20
+        }
+      ],
+      "ports": [
+        {
+          "id": "P10",
+          "properties": {
+            "port.side": "WEST",
+            "port.index": "0"
+          },
+          "width": 8,
+          "height": 8,
+          "x": -8,
+          "y": 19
+        },
+        {
+          "id": "P11",
+          "properties": {
+            "port.side": "EAST",
+            "port.index": "1"
+          },
+          "width": 8,
+          "height": 8,
+          "x": 66,
+          "y": 19
+        }
+      ],
+      "properties": {
+        "portConstraints": "FIXED_ORDER",
+        "nodeLabels.placement": "[H_LEFT, V_TOP, OUTSIDE]"
+      },
+      "width": 66,
+      "height": 46,
+      "$H": 9723,
+      "x": 759,
+      "y": 351
+    },
+    {
+      "id": "N7",
+      "labels": [
+        {
+          "text": "Current Time",
+          "id": "L7",
+          "width": 75,
+          "height": 15,
+          "x": 0,
+          "y": -20
+        }
+      ],
+      "ports": [
+        {
+          "id": "P12",
+          "properties": {
+            "port.side": "EAST",
+            "port.index": "0"
+          },
+          "width": 8,
+          "height": 8,
+          "x": 41,
+          "y": 16.5
+        },
+        {
+          "id": "P13",
+          "properties": {
+            "port.side": "WEST",
+            "port.index": "-1"
+          },
+          "width": 8,
+          "height": 8,
+          "x": -8,
+          "y": 16.5
+        }
+      ],
+      "properties": {
+        "portConstraints": "FIXED_ORDER",
+        "nodeLabels.placement": "[H_LEFT, V_TOP, OUTSIDE]"
+      },
+      "width": 41,
+      "height": 41,
+      "$H": 9728,
+      "x": 436,
+      "y": 99.5
+    },
+    {
+      "id": "N8",
+      "labels": [
+        {
+          "text": "Sin",
+          "id": "L8",
+          "width": 20,
+          "height": 15,
+          "x": 0,
+          "y": -20
+        }
+      ],
+      "ports": [
+        {
+          "id": "P14",
+          "properties": {
+            "port.side": "WEST",
+            "port.index": "0"
+          },
+          "width": 8,
+          "height": 8,
+          "x": -8,
+          "y": 8.5
+        },
+        {
+          "id": "P15",
+          "properties": {
+            "port.side": "EAST",
+            "port.index": "1"
+          },
+          "width": 8,
+          "height": 8,
+          "x": 14,
+          "y": 8.5
+        }
+      ],
+      "properties": {
+        "portConstraints": "FIXED_ORDER",
+        "nodeLabels.placement": "[H_LEFT, V_TOP, OUTSIDE]"
+      },
+      "width": 14,
+      "height": 25,
+      "$H": 9733,
+      "x": 675,
+      "y": 107.5
+    },
+    {
+      "id": "N9",
+      "labels": [
+        {
+          "text": "ZeroOrderHold",
+          "id": "L9",
+          "width": 84,
+          "height": 15,
+          "x": 0,
+          "y": -20
+        }
+      ],
+      "ports": [
+        {
+          "id": "P16",
+          "properties": {
+            "port.side": "WEST",
+            "port.index": "0"
+          },
+          "width": 8,
+          "height": 8,
+          "x": -8,
+          "y": 16.5
+        },
+        {
+          "id": "P17",
+          "properties": {
+            "port.side": "EAST",
+            "port.index": "1"
+          },
+          "width": 8,
+          "height": 8,
+          "x": 61,
+          "y": 16.5
+        }
+      ],
+      "properties": {
+        "portConstraints": "FIXED_ORDER",
+        "nodeLabels.placement": "[H_LEFT, V_TOP, OUTSIDE]"
+      },
+      "width": 61,
+      "height": 41,
+      "$H": 9738,
+      "x": 647,
+      "y": 266.5
+    },
+    {
+      "id": "N10",
+      "labels": [
+        {
+          "text": "Add1",
+          "id": "L10",
+          "width": 31,
+          "height": 15,
+          "x": 0,
+          "y": -20
+        }
+      ],
+      "ports": [
+        {
+          "id": "P18",
+          "properties": {
+            "port.side": "WEST",
+            "port.index": "0"
+          },
+          "width": 8,
+          "height": 8,
+          "x": -8,
+          "y": 8.333333333333334
+        },
+        {
+          "id": "P19",
+          "properties": {
+            "port.side": "WEST",
+            "port.index": "-1"
+          },
+          "width": 8,
+          "height": 8,
+          "x": -8,
+          "y": 24.66666666666667
+        },
+        {
+          "id": "P20",
+          "properties": {
+            "port.side": "EAST",
+            "port.index": "2"
+          },
+          "width": 8,
+          "height": 8,
+          "x": 41,
+          "y": 16.5
+        }
+      ],
+      "properties": {
+        "portConstraints": "FIXED_ORDER",
+        "nodeLabels.placement": "[H_LEFT, V_TOP, OUTSIDE]"
+      },
+      "width": 41,
+      "height": 41,
+      "$H": 9743,
+      "x": 904,
+      "y": 53.666666666666664
+    },
+    {
+      "id": "N11",
+      "labels": [
+        {
+          "text": "Integrator1",
+          "id": "L11",
+          "width": 62,
+          "height": 15,
+          "x": 0,
+          "y": -20
+        }
+      ],
+      "ports": [
+        {
+          "id": "P21",
+          "properties": {
+            "port.side": "WEST",
+            "port.index": "0"
+          },
+          "width": 8,
+          "height": 8,
+          "x": -8,
+          "y": 19
+        },
+        {
+          "id": "P22",
+          "properties": {
+            "port.side": "EAST",
+            "port.index": "1"
+          },
+          "width": 8,
+          "height": 8,
+          "x": 44,
+          "y": 19
+        }
+      ],
+      "properties": {
+        "portConstraints": "FIXED_ORDER",
+        "nodeLabels.placement": "[H_LEFT, V_TOP, OUTSIDE]"
+      },
+      "width": 44,
+      "height": 46,
+      "$H": 9749,
+      "x": 30,
+      "y": 43
+    },
+    {
+      "id": "N12",
+      "labels": [
+        {
+          "text": "Integrator2",
+          "id": "L12",
+          "width": 62,
+          "height": 15,
+          "x": 0,
+          "y": -20
+        }
+      ],
+      "ports": [
+        {
+          "id": "P23",
+          "properties": {
+            "port.side": "WEST",
+            "port.index": "0"
+          },
+          "width": 8,
+          "height": 8,
+          "x": -8,
+          "y": 19
+        },
+        {
+          "id": "P24",
+          "properties": {
+            "port.side": "EAST",
+            "port.index": "1"
+          },
+          "width": 8,
+          "height": 8,
+          "x": 44,
+          "y": 19
+        }
+      ],
+      "properties": {
+        "portConstraints": "FIXED_ORDER",
+        "nodeLabels.placement": "[H_LEFT, V_TOP, OUTSIDE]"
+      },
+      "width": 44,
+      "height": 46,
+      "$H": 9754,
+      "x": 120,
+      "y": 97
+    },
+    {
+      "id": "N13",
+      "labels": [
+        {
+          "text": "Scale0",
+          "id": "L13",
+          "width": 41,
+          "height": 15,
+          "x": 0,
+          "y": -20
+        }
+      ],
+      "ports": [
+        {
+          "id": "P25",
+          "properties": {
+            "port.side": "WEST",
+            "port.index": "0"
+          },
+          "width": 8,
+          "height": 8,
+          "x": -8,
+          "y": 19
+        },
+        {
+          "id": "P26",
+          "properties": {
+            "port.side": "EAST",
+            "port.index": "1"
+          },
+          "width": 8,
+          "height": 8,
+          "x": 66,
+          "y": 19
+        }
+      ],
+      "properties": {
+        "portConstraints": "FIXED_ORDER",
+        "nodeLabels.placement": "[H_LEFT, V_TOP, OUTSIDE]"
+      },
+      "width": 66,
+      "height": 46,
+      "$H": 9759,
+      "x": 780.5,
+      "y": 97
+    },
+    {
+      "id": "N14",
+      "labels": [
+        {
+          "text": "Scale1",
+          "id": "L14",
+          "width": 41,
+          "height": 15,
+          "x": 0,
+          "y": -20
+        }
+      ],
+      "ports": [
+        {
+          "id": "P27",
+          "properties": {
+            "port.side": "WEST",
+            "port.index": "0"
+          },
+          "width": 8,
+          "height": 8,
+          "x": -8,
+          "y": 19
+        },
+        {
+          "id": "P28",
+          "properties": {
+            "port.side": "EAST",
+            "port.index": "1"
+          },
+          "width": 8,
+          "height": 8,
+          "x": 66,
+          "y": 19
+        }
+      ],
+      "properties": {
+        "portConstraints": "FIXED_ORDER",
+        "nodeLabels.placement": "[H_LEFT, V_TOP, OUTSIDE]"
+      },
+      "width": 66,
+      "height": 46,
+      "$H": 9764,
+      "x": 334,
+      "y": 43
+    },
+    {
+      "id": "N15",
+      "labels": [
+        {
+          "text": "Scale2",
+          "id": "L15",
+          "width": 41,
+          "height": 15,
+          "x": 0,
+          "y": -20
+        }
+      ],
+      "ports": [
+        {
+          "id": "P29",
+          "properties": {
+            "port.side": "WEST",
+            "port.index": "0"
+          },
+          "width": 8,
+          "height": 8,
+          "x": -8,
+          "y": 19
+        },
+        {
+          "id": "P30",
+          "properties": {
+            "port.side": "EAST",
+            "port.index": "1"
+          },
+          "width": 8,
+          "height": 8,
+          "x": 66,
+          "y": 19
+        }
+      ],
+      "properties": {
+        "portConstraints": "FIXED_ORDER",
+        "nodeLabels.placement": "[H_LEFT, V_TOP, OUTSIDE]"
+      },
+      "width": 66,
+      "height": 46,
+      "$H": 9769,
+      "x": 221,
+      "y": 97
+    },
+    {
+      "id": "N16",
+      "labels": [
+        {
+          "text": "Scale3",
+          "id": "L16",
+          "width": 41,
+          "height": 15,
+          "x": 0,
+          "y": -20
+        }
+      ],
+      "ports": [
+        {
+          "id": "P31",
+          "properties": {
+            "port.side": "WEST",
+            "port.index": "0"
+          },
+          "width": 8,
+          "height": 8,
+          "x": -8,
+          "y": 19
+        },
+        {
+          "id": "P32",
+          "properties": {
+            "port.side": "EAST",
+            "port.index": "1"
+          },
+          "width": 8,
+          "height": 8,
+          "x": 66,
+          "y": 19
+        }
+      ],
+      "properties": {
+        "portConstraints": "FIXED_ORDER",
+        "nodeLabels.placement": "[H_LEFT, V_TOP, OUTSIDE]"
+      },
+      "width": 66,
+      "height": 46,
+      "$H": 9774,
+      "x": 539,
+      "y": 97
+    },
+    {
+      "id": "N17",
+      "labels": [
+        {
+          "text": "Scale4",
+          "id": "L17",
+          "width": 41,
+          "height": 15,
+          "x": 0,
+          "y": -20
+        }
+      ],
+      "ports": [
+        {
+          "id": "P33",
+          "properties": {
+            "port.side": "WEST",
+            "port.index": "0"
+          },
+          "width": 8,
+          "height": 8,
+          "x": -8,
+          "y": 19
+        },
+        {
+          "id": "P34",
+          "properties": {
+            "port.side": "EAST",
+            "port.index": "1"
+          },
+          "width": 8,
+          "height": 8,
+          "x": 66,
+          "y": 19
+        }
+      ],
+      "properties": {
+        "portConstraints": "FIXED_ORDER",
+        "nodeLabels.placement": "[H_LEFT, V_TOP, OUTSIDE]"
+      },
+      "width": 66,
+      "height": 46,
+      "$H": 9779,
+      "x": 780.5,
+      "y": 264
+    },
+    {
+      "id": "N18",
+      "labels": [
+        {
+          "text": "CTPlot",
+          "id": "L18",
+          "width": 39,
+          "height": 15,
+          "x": 0,
+          "y": -20
+        }
+      ],
+      "ports": [
+        {
+          "id": "P35",
+          "properties": {
+            "port.side": "WEST",
+            "port.index": "0"
+          },
+          "width": 8,
+          "height": 8,
+          "x": -8,
+          "y": 16.5
+        }
+      ],
+      "properties": {
+        "portConstraints": "FIXED_ORDER",
+        "nodeLabels.placement": "[H_LEFT, V_TOP, OUTSIDE]"
+      },
+      "width": 41,
+      "height": 41,
+      "$H": 9784,
+      "x": 759,
+      "y": 183
+    },
+    {
+      "id": "N19",
+      "labels": [
+        {
+          "text": "PeriodicSampler",
+          "id": "L19",
+          "width": 96,
+          "height": 15,
+          "x": 0,
+          "y": -20
+        }
+      ],
+      "ports": [
+        {
+          "id": "P36",
+          "properties": {
+            "port.side": "WEST",
+            "port.index": "0"
+          },
+          "width": 8,
+          "height": 8,
+          "x": -8,
+          "y": 16.5
+        },
+        {
+          "id": "P37",
+          "properties": {
+            "port.side": "EAST",
+            "port.index": "1"
+          },
+          "width": 8,
+          "height": 8,
+          "x": 61,
+          "y": 16.5
+        }
+      ],
+      "properties": {
+        "portConstraints": "FIXED_ORDER",
+        "nodeLabels.placement": "[H_LEFT, V_TOP, OUTSIDE]"
+      },
+      "width": 61,
+      "height": 41,
+      "$H": 9788,
+      "x": 210,
+      "y": 266.5
+    }
+  ],
+  "properties": {
+    "portConstraints": "FREE"
+  },
+  "edges": [
+    {
+      "id": "E1",
+      "sources": [
+        "P2"
+      ],
+      "targets": [
+        "P3"
+      ],
+      "sections": [
+        {
+          "id": "E1_s0",
+          "startPoint": {
+            "x": 408,
+            "y": 287
+          },
+          "endPoint": {
+            "x": 428.5,
+            "y": 287
+          },
+          "incomingShape": "P2",
+          "outgoingShape": "P3"
+        }
+      ],
+      "container": "G1"
+    },
+    {
+      "id": "E2",
+      "sources": [
+        "P4"
+      ],
+      "targets": [
+        "P5"
+      ],
+      "sections": [
+        {
+          "id": "E2_s0",
+          "startPoint": {
+            "x": 510.5,
+            "y": 287
+          },
+          "endPoint": {
+            "x": 533.5,
+            "y": 287
+          },
+          "incomingShape": "P4",
+          "outgoingShape": "P5"
+        }
+      ],
+      "container": "G1"
+    },
+    {
+      "id": "E3",
+      "sources": [
+        "P6"
+      ],
+      "targets": [
+        "P7"
+      ],
+      "sections": [
+        {
+          "id": "E3_s0",
+          "startPoint": {
+            "x": 610.5,
+            "y": 287
+          },
+          "endPoint": {
+            "x": 896,
+            "y": 320
+          },
+          "bendPoints": [
+            {
+              "x": 623,
+              "y": 287
+            },
+            {
+              "x": 623,
+              "y": 320
+            }
+          ],
+          "incomingShape": "P6",
+          "outgoingShape": "P7"
+        }
+      ],
+      "junctionPoints": [
+        {
+          "x": 623,
+          "y": 287
+        },
+        {
+          "x": 623,
+          "y": 320
+        }
+      ],
+      "container": "G1"
+    },
+    {
+      "id": "E4",
+      "sources": [
+        "P6"
+      ],
+      "targets": [
+        "P8"
+      ],
+      "sections": [
+        {
+          "id": "E4_s0",
+          "startPoint": {
+            "x": 610.5,
+            "y": 287
+          },
+          "endPoint": {
+            "x": 633,
+            "y": 374
+          },
+          "bendPoints": [
+            {
+              "x": 623,
+              "y": 287
+            },
+            {
+              "x": 623,
+              "y": 374
+            }
+          ],
+          "incomingShape": "P6",
+          "outgoingShape": "P8"
+        }
+      ],
+      "container": "G1"
+    },
+    {
+      "id": "E5",
+      "sources": [
+        "P6"
+      ],
+      "targets": [
+        "P16"
+      ],
+      "sections": [
+        {
+          "id": "E5_s0",
+          "startPoint": {
+            "x": 610.5,
+            "y": 287
+          },
+          "endPoint": {
+            "x": 639,
+            "y": 287
+          },
+          "incomingShape": "P6",
+          "outgoingShape": "P16"
+        }
+      ],
+      "container": "G1"
+    },
+    {
+      "id": "E6",
+      "sources": [
+        "P9"
+      ],
+      "targets": [
+        "P10"
+      ],
+      "sections": [
+        {
+          "id": "E6_s0",
+          "startPoint": {
+            "x": 715,
+            "y": 374
+          },
+          "endPoint": {
+            "x": 751,
+            "y": 374
+          },
+          "incomingShape": "P9",
+          "outgoingShape": "P10"
+        }
+      ],
+      "container": "G1"
+    },
+    {
+      "id": "E7",
+      "sources": [
+        "P11"
+      ],
+      "targets": [
+        "P7"
+      ],
+      "sections": [
+        {
+          "id": "E7_s0",
+          "startPoint": {
+            "x": 833,
+            "y": 374
+          },
+          "endPoint": {
+            "x": 896,
+            "y": 320
+          },
+          "bendPoints": [
+            {
+              "x": 886,
+              "y": 374
+            },
+            {
+              "x": 886,
+              "y": 320
+            }
+          ],
+          "incomingShape": "P11",
+          "outgoingShape": "P7"
+        }
+      ],
+      "junctionPoints": [
+        {
+          "x": 886,
+          "y": 320
+        }
+      ],
+      "container": "G1"
+    },
+    {
+      "id": "E8",
+      "sources": [
+        "P12"
+      ],
+      "targets": [
+        "P31"
+      ],
+      "sections": [
+        {
+          "id": "E8_s0",
+          "startPoint": {
+            "x": 485,
+            "y": 120
+          },
+          "endPoint": {
+            "x": 531,
+            "y": 120
+          },
+          "incomingShape": "P12",
+          "outgoingShape": "P31"
+        }
+      ],
+      "container": "G1"
+    },
+    {
+      "id": "E9",
+      "sources": [
+        "P15"
+      ],
+      "targets": [
+        "P25"
+      ],
+      "sections": [
+        {
+          "id": "E9_s0",
+          "startPoint": {
+            "x": 697,
+            "y": 120
+          },
+          "endPoint": {
+            "x": 772.5,
+            "y": 120
+          },
+          "incomingShape": "P15",
+          "outgoingShape": "P25"
+        }
+      ],
+      "container": "G1"
+    },
+    {
+      "id": "E10",
+      "sources": [
+        "P15"
+      ],
+      "targets": [
+        "P35"
+      ],
+      "sections": [
+        {
+          "id": "E10_s0",
+          "startPoint": {
+            "x": 697,
+            "y": 120
+          },
+          "endPoint": {
+            "x": 751,
+            "y": 203.5
+          },
+          "bendPoints": [
+            {
+              "x": 741,
+              "y": 120
+            },
+            {
+              "x": 741,
+              "y": 203.5
+            }
+          ],
+          "incomingShape": "P15",
+          "outgoingShape": "P35"
+        }
+      ],
+      "junctionPoints": [
+        {
+          "x": 741,
+          "y": 120
+        },
+        {
+          "x": 741,
+          "y": 203.5
+        }
+      ],
+      "container": "G1"
+    },
+    {
+      "id": "E11",
+      "sources": [
+        "P17"
+      ],
+      "targets": [
+        "P33"
+      ],
+      "sections": [
+        {
+          "id": "E11_s0",
+          "startPoint": {
+            "x": 716,
+            "y": 287
+          },
+          "endPoint": {
+            "x": 772.5,
+            "y": 287
+          },
+          "incomingShape": "P17",
+          "outgoingShape": "P33"
+        }
+      ],
+      "container": "G1"
+    },
+    {
+      "id": "E12",
+      "sources": [
+        "P17"
+      ],
+      "targets": [
+        "P35"
+      ],
+      "sections": [
+        {
+          "id": "E12_s0",
+          "startPoint": {
+            "x": 716,
+            "y": 287
+          },
+          "endPoint": {
+            "x": 751,
+            "y": 203.5
+          },
+          "bendPoints": [
+            {
+              "x": 741,
+              "y": 287
+            },
+            {
+              "x": 741,
+              "y": 203.5
+            }
+          ],
+          "incomingShape": "P17",
+          "outgoingShape": "P35"
+        }
+      ],
+      "junctionPoints": [
+        {
+          "x": 741,
+          "y": 287
+        }
+      ],
+      "container": "G1"
+    },
+    {
+      "id": "E13",
+      "sources": [
+        "P20"
+      ],
+      "targets": [
+        "P21"
+      ],
+      "sections": [
+        {
+          "id": "E13_s0",
+          "startPoint": {
+            "x": 953,
+            "y": 74.16666666666666
+          },
+          "endPoint": {
+            "x": 22,
+            "y": 66
+          },
+          "bendPoints": [
+            {
+              "x": 963,
+              "y": 74.16666666666666
+            },
+            {
+              "x": 963,
+              "y": 12
+            },
+            {
+              "x": 12,
+              "y": 12
+            },
+            {
+              "x": 12,
+              "y": 66
+            }
+          ],
+          "incomingShape": "P20",
+          "outgoingShape": "P21"
+        }
+      ],
+      "container": "G1"
+    },
+    {
+      "id": "E14",
+      "sources": [
+        "P22"
+      ],
+      "targets": [
+        "P23"
+      ],
+      "sections": [
+        {
+          "id": "E14_s0",
+          "startPoint": {
+            "x": 82,
+            "y": 66
+          },
+          "endPoint": {
+            "x": 112,
+            "y": 120
+          },
+          "bendPoints": [
+            {
+              "x": 102,
+              "y": 66
+            },
+            {
+              "x": 102,
+              "y": 120
+            }
+          ],
+          "incomingShape": "P22",
+          "outgoingShape": "P23"
+        }
+      ],
+      "junctionPoints": [
+        {
+          "x": 102,
+          "y": 66
+        }
+      ],
+      "container": "G1"
+    },
+    {
+      "id": "E15",
+      "sources": [
+        "P22"
+      ],
+      "targets": [
+        "P27"
+      ],
+      "sections": [
+        {
+          "id": "E15_s0",
+          "startPoint": {
+            "x": 82,
+            "y": 66
+          },
+          "endPoint": {
+            "x": 326,
+            "y": 66
+          },
+          "incomingShape": "P22",
+          "outgoingShape": "P27"
+        }
+      ],
+      "container": "G1"
+    },
+    {
+      "id": "E16",
+      "sources": [
+        "P24"
+      ],
+      "targets": [
+        "P29"
+      ],
+      "sections": [
+        {
+          "id": "E16_s0",
+          "startPoint": {
+            "x": 172,
+            "y": 120
+          },
+          "endPoint": {
+            "x": 213,
+            "y": 120
+          },
+          "incomingShape": "P24",
+          "outgoingShape": "P29"
+        }
+      ],
+      "container": "G1"
+    },
+    {
+      "id": "E17",
+      "sources": [
+        "P24"
+      ],
+      "targets": [
+        "P35"
+      ],
+      "sections": [
+        {
+          "id": "E17_s0",
+          "startPoint": {
+            "x": 172,
+            "y": 120
+          },
+          "endPoint": {
+            "x": 751,
+            "y": 203.5
+          },
+          "bendPoints": [
+            {
+              "x": 192,
+              "y": 120
+            },
+            {
+              "x": 192,
+              "y": 203.5
+            }
+          ],
+          "incomingShape": "P24",
+          "outgoingShape": "P35"
+        }
+      ],
+      "junctionPoints": [
+        {
+          "x": 192,
+          "y": 120
+        },
+        {
+          "x": 192,
+          "y": 203.5
+        }
+      ],
+      "container": "G1"
+    },
+    {
+      "id": "E18",
+      "sources": [
+        "P24"
+      ],
+      "targets": [
+        "P36"
+      ],
+      "sections": [
+        {
+          "id": "E18_s0",
+          "startPoint": {
+            "x": 172,
+            "y": 120
+          },
+          "endPoint": {
+            "x": 202,
+            "y": 287
+          },
+          "bendPoints": [
+            {
+              "x": 192,
+              "y": 120
+            },
+            {
+              "x": 192,
+              "y": 287
+            }
+          ],
+          "incomingShape": "P24",
+          "outgoingShape": "P36"
+        }
+      ],
+      "container": "G1"
+    },
+    {
+      "id": "E19",
+      "sources": [
+        "P26"
+      ],
+      "targets": [
+        "P18"
+      ],
+      "sections": [
+        {
+          "id": "E19_s0",
+          "startPoint": {
+            "x": 854.5,
+            "y": 120
+          },
+          "endPoint": {
+            "x": 896,
+            "y": 66
+          },
+          "bendPoints": [
+            {
+              "x": 886,
+              "y": 120
+            },
+            {
+              "x": 886,
+              "y": 66
+            }
+          ],
+          "incomingShape": "P26",
+          "outgoingShape": "P18"
+        }
+      ],
+      "junctionPoints": [
+        {
+          "x": 886,
+          "y": 120
+        },
+        {
+          "x": 886,
+          "y": 66
+        }
+      ],
+      "container": "G1"
+    },
+    {
+      "id": "E20",
+      "sources": [
+        "P28"
+      ],
+      "targets": [
+        "P18"
+      ],
+      "sections": [
+        {
+          "id": "E20_s0",
+          "startPoint": {
+            "x": 408,
+            "y": 66
+          },
+          "endPoint": {
+            "x": 896,
+            "y": 66
+          },
+          "incomingShape": "P28",
+          "outgoingShape": "P18"
+        }
+      ],
+      "container": "G1"
+    },
+    {
+      "id": "E21",
+      "sources": [
+        "P30"
+      ],
+      "targets": [
+        "P18"
+      ],
+      "sections": [
+        {
+          "id": "E21_s0",
+          "startPoint": {
+            "x": 295,
+            "y": 120
+          },
+          "endPoint": {
+            "x": 896,
+            "y": 66
+          },
+          "bendPoints": [
+            {
+              "x": 418,
+              "y": 120
+            },
+            {
+              "x": 418,
+              "y": 66
+            }
+          ],
+          "incomingShape": "P30",
+          "outgoingShape": "P18"
+        }
+      ],
+      "junctionPoints": [
+        {
+          "x": 418,
+          "y": 66
+        }
+      ],
+      "container": "G1"
+    },
+    {
+      "id": "E22",
+      "sources": [
+        "P32"
+      ],
+      "targets": [
+        "P14"
+      ],
+      "sections": [
+        {
+          "id": "E22_s0",
+          "startPoint": {
+            "x": 613,
+            "y": 120
+          },
+          "endPoint": {
+            "x": 667,
+            "y": 120
+          },
+          "incomingShape": "P32",
+          "outgoingShape": "P14"
+        }
+      ],
+      "container": "G1"
+    },
+    {
+      "id": "E23",
+      "sources": [
+        "P34"
+      ],
+      "targets": [
+        "P18"
+      ],
+      "sections": [
+        {
+          "id": "E23_s0",
+          "startPoint": {
+            "x": 854.5,
+            "y": 287
+          },
+          "endPoint": {
+            "x": 896,
+            "y": 66
+          },
+          "bendPoints": [
+            {
+              "x": 886,
+              "y": 287
+            },
+            {
+              "x": 886,
+              "y": 66
+            }
+          ],
+          "incomingShape": "P34",
+          "outgoingShape": "P18"
+        }
+      ],
+      "container": "G1"
+    },
+    {
+      "id": "E24",
+      "sources": [
+        "P37"
+      ],
+      "targets": [
+        "P1"
+      ],
+      "sections": [
+        {
+          "id": "E24_s0",
+          "startPoint": {
+            "x": 279,
+            "y": 287
+          },
+          "endPoint": {
+            "x": 326,
+            "y": 287
+          },
+          "incomingShape": "P37",
+          "outgoingShape": "P1"
+        }
+      ],
+      "container": "G1"
+    }
+  ],
+  "layoutOptions": {
+    "elk.algorithm": "layered",
+    "elk.direction": "RIGHT"
+  },
+  "$H": 9697,
+  "x": 0,
+  "y": 0,
+  "width": 975,
+  "height": 409
+}

@@ -1,0 +1,28 @@
+{
+  "name": "@yandex-assessment/elkjs-native",
+  "version": "0.0.7",
+  "description": "Native TypeScript port of elkjs (layered algorithm only).",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "bench": "vitest bench",
+    "curate": "node tools/curate-realworld.mjs",
+    "golden": "node tools/golden.mjs",
+    "dump-slots": "node tools/dump-slots.mjs",
+    "harvest": "echo '[harvest] .elkt→.json converter requires JDK17+; see tools/README.md. Skipping.'"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "elkjs": "0.11.1",
+    "fast-check": "^3.15.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.4.0",
+    "vitest": "^1.4.0"
+  }
+}

@@ -1,0 +1,187 @@
+{
+  "id": "root",
+  "layoutOptions": {
+    "elk.algorithm": "layered",
+    "elk.spacing.edgeNode": "50.0",
+    "elk.spacing.nodeNode": "50.0",
+    "elk.layered.nodePlacement.strategy": "BRANDES_KOEPF",
+    "elk.layered.spacing.edgeNodeBetweenLayers": "20.0",
+    "elk.layered.edgeRouting": "POLYLINE",
+    "elk.edge.thickness": "2.0",
+    "elk.layered.considerModelOrder.strategy": "PREFER_EDGES",
+    "elk.layered.considerModelOrder.portModelOrder": "true",
+    "elk.layered.crossingMinimization.strategy": "NONE",
+    "elk.spacing.portPort": "0",
+    "elk.layered.wrapping.additionalEdgeSpacing": "0"
+  },
+  "children": [
+    {
+      "id": "n1",
+      "width": 160,
+      "height": 80,
+      "layoutOptions": {
+        "elk.portAlignment.default": "BEGIN",
+        "elk.layered.crossingMinimization.positionConstraint": "FIRST",
+        "elk.layered.layering.layerConstraint": "FIRST"
+      },
+      "ports": [
+        {
+          "id": "n1.out",
+          "width": 0,
+          "height": 0,
+          "layoutOptions": {
+            "elk.port.side": "EAST",
+            "elk.port.index": "0",
+            "elk.port.borderOffset": "0",
+            "elk.port.anchor": "0,40"
+          },
+          "x": 160,
+          "y": 0
+        }
+      ],
+      "$H": 10563,
+      "x": 12,
+      "y": 12
+    },
+    {
+      "id": "n2",
+      "width": 160,
+      "height": 80,
+      "layoutOptions": {
+        "elk.portAlignment.default": "BEGIN"
+      },
+      "ports": [
+        {
+          "id": "n2.in",
+          "width": 0,
+          "height": 0,
+          "layoutOptions": {
+            "elk.port.side": "WEST",
+            "elk.port.index": "0",
+            "elk.port.borderOffset": "0",
+            "elk.port.anchor": "0,40"
+          },
+          "x": 0,
+          "y": 0
+        },
+        {
+          "id": "n2.out",
+          "width": 0,
+          "height": 0,
+          "layoutOptions": {
+            "elk.port.side": "EAST",
+            "elk.port.index": "0",
+            "elk.port.borderOffset": "0",
+            "elk.port.anchor": "0,40"
+          },
+          "x": 160,
+          "y": 0
+        }
+      ],
+      "$H": 10566,
+      "x": 236,
+      "y": 12
+    },
+    {
+      "id": "n3",
+      "width": 160,
+      "height": 80,
+      "layoutOptions": {
+        "elk.portAlignment.default": "BEGIN"
+      },
+      "ports": [
+        {
+          "id": "n3.in",
+          "width": 0,
+          "height": 0,
+          "layoutOptions": {
+            "elk.port.side": "WEST",
+            "elk.port.index": "0",
+            "elk.port.borderOffset": "0",
+            "elk.port.anchor": "0,40"
+          },
+          "x": 0,
+          "y": 0
+        }
+      ],
+      "$H": 10570,
+      "x": 416,
+      "y": 12
+    }
+  ],
+  "edges": [
+    {
+      "id": "e1",
+      "sources": [
+        "n1.out"
+      ],
+      "targets": [
+        "n2.in"
+      ],
+      "labels": [
+        {
+          "text": "yes",
+          "width": 24,
+          "height": 14,
+          "x": 192,
+          "y": 55
+        }
+      ],
+      "sections": [
+        {
+          "id": "e1_s0",
+          "startPoint": {
+            "x": 172,
+            "y": 52
+          },
+          "endPoint": {
+            "x": 236,
+            "y": 52
+          },
+          "incomingShape": "n1.out",
+          "outgoingShape": "n2.in"
+        }
+      ],
+      "container": "root"
+    },
+    {
+      "id": "e2",
+      "sources": [
+        "n2.out"
+      ],
+      "targets": [
+        "n3.in"
+      ],
+      "labels": [
+        {
+          "text": "",
+          "width": 0,
+          "height": 14,
+          "x": 0,
+          "y": 0
+        }
+      ],
+      "sections": [
+        {
+          "id": "e2_s0",
+          "startPoint": {
+            "x": 396,
+            "y": 52
+          },
+          "endPoint": {
+            "x": 416,
+            "y": 52
+          },
+          "incomingShape": "n2.out",
+          "outgoingShape": "n3.in"
+        }
+      ],
+      "container": "root"
+    }
+  ],
+  "$H": 10561,
+  "x": 0,
+  "y": 0,
+  "width": 588,
+  "height": 104
+}
